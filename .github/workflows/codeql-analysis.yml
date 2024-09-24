@@ -34,6 +34,6 @@ on:
 
 jobs:
   analyze:
-    uses: rajapandi1234/kattu/.github/workflows/codeql-analysis.yml@master
+    uses: mosip/kattu/.github/workflows/codeql-analysis.yml@master
     with:
       SERVICE_LOCATION: ./resident
