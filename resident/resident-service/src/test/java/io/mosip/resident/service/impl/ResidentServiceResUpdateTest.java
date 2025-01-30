@@ -23,6 +23,7 @@ import io.mosip.resident.dto.IdResponseDTO1;
 import io.mosip.resident.util.*;
 import io.mosip.resident.validator.RequestValidator;
 import io.mosip.resident.validator.ValidateNewUpdateRequest;
+import io.mosip.resident.validator.ValidateSameData;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -124,6 +125,9 @@ public class ResidentServiceResUpdateTest {
 
 	@Mock
 	private ObjectMapper objectMapper;
+
+	@Mock
+	private ValidateSameData validateSameData;
 	
 	@Mock
 	private ProxyMasterdataService proxyMasterdataService;
@@ -222,6 +226,9 @@ public class ResidentServiceResUpdateTest {
 		notificationResponse.setMessage("Notification sent");
 		notificationResponse.setStatus("success");
 		Mockito.when(notificationService.sendNotification(any(), Mockito.nullable(Map.class))).thenReturn(notificationResponse);
+
+		Mockito.when(env.getProperty(ApiName.MACHINESTATUSUPDATE.name())).thenReturn("http://localhost");
+		when(residentServiceRestClient.patchApi(any(), any(), any(), any())).thenReturn(new io.mosip.kernel.core.http.ResponseWrapper<>());
 
 		String publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuGXPqbFOIZhB_N_fbTXOMIsRgq_LMdL9DJ5kWYAneCj_LPw3OEm2ncLVIRyJsF2DcSQwvzt_Njdvg1Cr54nD1uHBu3Vt9G1sy3p6uwbeK1l5mJSMNe5oGe11fmehtsR2QcB_45_us_IiiiUzzHJrySexmDfdOiPdy-dID4DYRDAf-HXlMIEf4Di_8NV3wVrA3jq1tuNkXX3qKtM4NhZOihp0HmB9E7RHttSV9VJNh00BrC57qdMfa5xqsHok3qftU5SAan4BGuPklN2fzOVcsa-V-B8JbwxRfPdwMkq-jW7Eu1LcNhNVQYJGEWDLAQDGKY_fOB_YwBzn8xvYRjqSfQIDAQAB";
 		List<MachineDto> machineDtos = new ArrayList<>();

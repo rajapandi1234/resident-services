@@ -37,7 +37,7 @@ jobs:
   publish_to_nexus:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-resident-services
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus1.yml@master-java21
     with:
       SERVICE_LOCATION: ./resident
     secrets:
@@ -85,9 +85,9 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   build-maven-apitest-resident:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@master
+    uses: mosip/kattu/.github/workflows/maven-build.yml@master-java21
     with:
-      SERVICE_LOCATION: ./apitest
+      SERVICE_LOCATION: ./api-test
       BUILD_ARTIFACT: apitest-resident
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
@@ -99,9 +99,9 @@ jobs:
   publish_to_nexus_apitest:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
     needs: build-maven-apitest-resident
-    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
     with:
-      SERVICE_LOCATION: ./apitest
+      SERVICE_LOCATION: ./api-test
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -116,15 +116,15 @@ jobs:
     env:
       NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: apitest-resident
-      SERVICE_LOCATION: apitest
+      SERVICE_LOCATION: api-test
       BUILD_ARTIFACT: apitest-resident-local
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
         with:
-          ref: ${{ github.ref }}
-          java-version: 11
+          distribution: 'temurin'
+          java-version: 21
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
       - name: Setup the settings file for ossrh server
@@ -144,7 +144,7 @@ jobs:
           find ${{ env.SERVICE_LOCATION }} -path '*/target/*' -exec zip ${{ env.BUILD_ARTIFACT }}.zip {} +
       - name: Upload the springboot jars
         if: ${{ !contains(github.ref, 'master') || !contains(github.ref, 'main') }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: ${{ env.BUILD_ARTIFACT }}.zip
@@ -161,13 +161,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - SERVICE_LOCATION: 'apitest'
+          - SERVICE_LOCATION: 'api-test'
             SERVICE_NAME: 'apitest-resident'
             BUILD_ARTIFACT: 'apitest-resident-local'
             ONLY_DOCKER: true
       fail-fast: false
     name: ${{ matrix.SERVICE_NAME }}
-    uses: mosip/kattu/.github/workflows/docker-build.yml@master
+    uses: mosip/kattu/.github/workflows/docker-build.yml@master-java21
     with:
       SERVICE_LOCATION: ${{ matrix.SERVICE_LOCATION }}
       SERVICE_NAME: ${{ matrix.SERVICE_NAME }}
@@ -177,19 +177,4 @@ jobs:
       DEV_NAMESPACE_DOCKER_HUB: ${{ secrets.DEV_NAMESPACE_DOCKER_HUB }}
       ACTOR_DOCKER_HUB: ${{ secrets.ACTOR_DOCKER_HUB }}
       RELEASE_DOCKER_HUB: ${{ secrets.RELEASE_DOCKER_HUB }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  sonar_analysis_apitest_resident:
-    needs: build-maven-apitest-resident
-    if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master
-    with:
-      SERVICE_LOCATION: ./apitest
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      ORG_KEY: ${{ secrets.ORG_KEY }}
-      OSSRH_USER: ${{ secrets.OSSRH_USER }}
-      OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
-      OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-      GPG_SECRET: ${{ secrets.GPG_SECRET }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
